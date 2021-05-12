@@ -4,13 +4,9 @@ Download apk by clicking [here](https://github.com/patelsneh18/CounterApp/releas
 
 ## Features of Application
 
-- Increment and decrement counter
+- Fetch and add image from internet to gallery
 
-- Explicit Intent to Open new activity.
-
-- Inpllicit Intents to open webpage, dial number, share text.
-
-- Send and recieve data between activities using intents.
+- Fetch colors and labels according to image and make an image cardview according to it.
 
 ## Previews  of Application
 
