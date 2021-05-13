@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.palette.graphics.Palette;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -22,6 +23,10 @@ import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +52,7 @@ public class ItemHelper {
      * @param context
      * @param listener
      */
-    public void fetchData(int x, int y, Context context, OnCompleteListener listener){
+    public void fetchData(int x, int y, Context context, OnCompleteListener listener) {
         this.context = context;
         this.listener = listener;
         fetchImage(
@@ -62,7 +67,7 @@ public class ItemHelper {
      * @param context
      * @param listener
      */
-    public void fetchData(int x,Context context, OnCompleteListener listener){
+    public void fetchData(int x,Context context, OnCompleteListener listener) {
         this.context = context;
         this.listener = listener;
         fetchImage(
@@ -75,10 +80,13 @@ public class ItemHelper {
      * Fetches image from URL
      * @param url
      */
-    void fetchImage(String url){
+    void fetchImage(String url) {
+
         Glide.with(context)
                 .asBitmap()
                 .load(url)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
                 .into(new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(@NonNull @org.jetbrains.annotations.NotNull Bitmap resource, @Nullable @org.jetbrains.annotations.Nullable Transition<? super Bitmap> transition) {
