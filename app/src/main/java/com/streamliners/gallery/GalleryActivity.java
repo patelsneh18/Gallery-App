@@ -164,6 +164,7 @@ public class GalleryActivity extends AppCompatActivity {
     private void inflateDataFromSharedPreferences(){
         int itemCount = preferences.getInt(Constants.NUMOFIMG,0);
 
+        // Inflate all items from shared preferences
         for (int i = 0; i < itemCount; i++){
             Item item = new Item(bitmapFromString(preferences.getString(Constants.IMAGE + i,""))
                     ,preferences.getInt(Constants.COLOR + i,0)
