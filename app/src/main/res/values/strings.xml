@@ -8,4 +8,10 @@
     <string name="fetch_image">FETCH IMAGE</string>
     <string name="label">Label</string>
     <string name="add">ADD</string>
+    <string name="no_items_try_adding_from_the_action_above">No items. Try adding from the action above</string>
+    <string name="choose_new_palette_color">Choose new palette color</string>
+    <string name="choose_new_label_title">Choose new label title</string>
+    <string name="update">UPDATE</string>
+    <string name="edit_colors_and_label">Edit Colors and Label</string>
+    <string name="remove">Remove</string>
 </resources>

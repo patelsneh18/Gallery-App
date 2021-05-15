@@ -173,8 +173,6 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
         inflateLabelChips(labels);
         handleCustomLabelInput();
         handleAddImageEvent();
-
-
     }
 
 
@@ -267,6 +265,7 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
         listener.onError(error);
         dialog.dismiss();
     }
+
 
     /**
      * callbacks for add image completion
