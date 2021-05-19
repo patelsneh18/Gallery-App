@@ -14,7 +14,6 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
@@ -24,9 +23,10 @@ import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +42,8 @@ public class ItemHelper {
 
     private Bitmap bitmap;
     private Set<Integer> colors;
+    private String redirectUrl;
+    private RedirectUrlHelper.OnFetchedUrlListener onFetchedUrlListener;
 
 
 
@@ -52,10 +54,10 @@ public class ItemHelper {
      * @param context
      * @param listener
      */
-    public void fetchData(int x, int y, Context context, OnCompleteListener listener) {
+    public void fetchData(int x, int y, Context context, OnCompleteListener listener) throws IOException {
         this.context = context;
         this.listener = listener;
-        fetchImage(
+        fetchUrl(
                 String.format(rectangularImageUrl, x, y)
         );
     }
@@ -67,15 +69,26 @@ public class ItemHelper {
      * @param context
      * @param listener
      */
-    public void fetchData(int x,Context context, OnCompleteListener listener) {
+    public void fetchData(int x,Context context, OnCompleteListener listener) throws IOException {
         this.context = context;
         this.listener = listener;
-        fetchImage(
+        fetchUrl(
                 String.format(squareImageUrl, x)
         );
     }
 
 
+    void fetchUrl(String url) throws IOException {
+
+        new RedirectUrlHelper().fetchRedirectedURL(new RedirectUrlHelper.OnFetchedUrlListener() {
+            @Override
+            public void onFetchedUrl(String url) {
+                redirectUrl = url;
+                fetchImage(redirectUrl);
+            }
+        }).execute(url);
+
+    }
     /**
      * Fetches image from URL
      * @param url
@@ -85,8 +98,6 @@ public class ItemHelper {
         Glide.with(context)
                 .asBitmap()
                 .load(url)
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .skipMemoryCache(true)
                 .into(new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(@NonNull @org.jetbrains.annotations.NotNull Bitmap resource, @Nullable @org.jetbrains.annotations.Nullable Transition<? super Bitmap> transition) {
@@ -105,7 +116,7 @@ public class ItemHelper {
     /**
      * Extract Color Palettes from Image(Bitmap)
      */
-    private void extractPaletteFromBitmap() {
+    public void extractPaletteFromBitmap() {
         Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
             @Override
             public void onGenerated(Palette palette) {
@@ -153,7 +164,7 @@ public class ItemHelper {
                         for (ImageLabel label : imageLabels){
                             strings.add(label.getText());
                         }
-                        listener.onFetchedData(bitmap, colors, strings);
+                        listener.onFetchedData(redirectUrl, colors, strings);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -168,7 +179,7 @@ public class ItemHelper {
      * Callback when image data is fetched
      */
     interface OnCompleteListener{
-        void onFetchedData(Bitmap image, Set<Integer> colors, List<String> labels);
+        void onFetchedData(String url, Set<Integer> colors, List<String> labels);
         void onError(String error);
     }
 }

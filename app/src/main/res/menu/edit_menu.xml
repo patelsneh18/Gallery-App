@@ -3,4 +3,5 @@
 
     <item android:title="@string/edit_colors_and_label" android:id="@+id/editMenuItem" />
     <item android:title="@string/remove" android:id="@+id/removeMenuItem"/>
+    <item android:title="@string/share_image" android:id="@+id/shareImage"/>
 </menu>

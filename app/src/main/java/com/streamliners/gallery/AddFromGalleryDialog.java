@@ -29,6 +29,7 @@ import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
 import com.streamliners.gallery.databinding.ChipColorBinding;
 import com.streamliners.gallery.databinding.ChipLabelBinding;
 import com.streamliners.gallery.databinding.DialogEditImageBinding;
+import com.streamliners.gallery.databinding.DialogFromGalleryBinding;
 import com.streamliners.gallery.models.Item;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,10 +39,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class EditImageDialog {
+public class AddFromGalleryDialog {
     private Context context;
-    private EditImageDialog.onCompleteListener listener;
-    private DialogEditImageBinding b;
+    private AddFromGalleryDialog.onCompleteListener listener;
+    private DialogFromGalleryBinding b;
     private LayoutInflater inflater;
 
     private boolean isCustomLabel;
@@ -57,13 +58,13 @@ public class EditImageDialog {
      * @param imageUrl
      * @param listener
      */
-    public void show(Context context,String imageUrl, EditImageDialog.onCompleteListener listener){
+    public void show(Context context,String imageUrl, AddFromGalleryDialog.onCompleteListener listener){
         this.listener = listener;
         this.imageUrl = imageUrl;
         this.context = context;
         if (context instanceof GalleryActivity){
             inflater = ((GalleryActivity) context).getLayoutInflater();
-            b = DialogEditImageBinding.inflate(inflater);
+            b = DialogFromGalleryBinding.inflate(inflater);
         }
         else {
             dialog.dismiss();
@@ -78,7 +79,8 @@ public class EditImageDialog {
                 .show();
 
         fetchImage(imageUrl);
-        updateNewColorAndLabel();
+
+        addButtonHandle();
     }
 
     private void extractLabels() {
@@ -94,7 +96,7 @@ public class EditImageDialog {
                         }
                         inflateColorChips(colors);
                         inflateLabelChips(strings);
-                        b.edImageView.setImageBitmap(bitmap);
+                        b.gImageView.setImageBitmap(bitmap);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -115,13 +117,13 @@ public class EditImageDialog {
         });
     }
 
-    private void updateNewColorAndLabel() {
-        b.edImageView.setImageBitmap(bitmap);
+    private void addButtonHandle() {
+        b.gImageView.setImageBitmap(bitmap);
         b.updateBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int colorChipId = b.edColorChips.getCheckedChipId(),
-                        labelChipId = b.edLabelChips.getCheckedChipId();
+                int colorChipId = b.gColorChips.getCheckedChipId(),
+                        labelChipId = b.gLabelChips.getCheckedChipId();
 
                 if (colorChipId == -1 || labelChipId == -1) {
                     Toast.makeText(context, "Please choose color & label", Toast.LENGTH_SHORT).show();
@@ -135,13 +137,13 @@ public class EditImageDialog {
                         return;
                     }
                 }else {
-                    label = ((Chip) b.edLabelChips.findViewById(labelChipId)).getText().toString();
+                    label = ((Chip) b.gLabelChips.findViewById(labelChipId)).getText().toString();
                 }
-                int color = ((Chip) b.edColorChips.findViewById(colorChipId)).getChipBackgroundColor().getDefaultColor();
+                int color = ((Chip) b.gColorChips.findViewById(colorChipId)).getChipBackgroundColor().getDefaultColor();
 
                 //Send Callback
                 Item item = new Item(imageUrl, color, label);
-                listener.onEditCompleted(item);
+                listener.onAddCompleted(item);
                 dialog.dismiss();
             }
         });
@@ -171,7 +173,7 @@ public class EditImageDialog {
         for (int color: colors){
             ChipColorBinding binding = ChipColorBinding.inflate(inflater);
             binding.getRoot().setChipBackgroundColor(ColorStateList.valueOf(color));
-            b.edColorChips.addView(binding.getRoot());
+            b.gColorChips.addView(binding.getRoot());
         }
 
     }
@@ -187,7 +189,7 @@ public class EditImageDialog {
         for (String label: labels){
             ChipLabelBinding binding = ChipLabelBinding.inflate(inflater);
             binding.getRoot().setText(label);
-            b.edLabelChips.addView(binding.getRoot());
+            b.gLabelChips.addView(binding.getRoot());
         }
         handleCustomLabelInput();
     }
@@ -217,22 +219,22 @@ public class EditImageDialog {
     private void handleCustomLabelInput(){
         ChipLabelBinding binding = ChipLabelBinding.inflate(inflater);
         binding.getRoot().setText("Custom");
-        b.edLabelChips.addView(binding.getRoot());
+        b.gLabelChips.addView(binding.getRoot());
 
         binding.getRoot().setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                b.edCustomLabelInput.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                b.gCustomLabelInput.setVisibility(isChecked ? View.VISIBLE : View.GONE);
                 isCustomLabel = isChecked;
             }
         });
     }
+
     /**
      * callbacks for edit completion
      */
     interface onCompleteListener{
-        void onEditCompleted(Item item);
+        void onAddCompleted(Item item);
         void onError(String error);
-
     }
 }

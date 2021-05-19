@@ -6,19 +6,19 @@ import android.graphics.Bitmap;
  * Properties to inflate basic gallery layout for an image
  */
 public class Item {
-    public Bitmap image;
+    public String imageUrl;
     public int color;
     public String label;
 
     
     /**
      * Parameterised constructor for item class
-     * @param image
+     * @param imageUrl
      * @param color
      * @param label
      */
-    public Item(Bitmap image, int color, String label) {
-        this.image = image;
+    public Item(String imageUrl, int color, String label) {
+        this.imageUrl = imageUrl;
         this.color = color;
         this.label = label;
     }

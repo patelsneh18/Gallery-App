@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.streamliners.gallery.databinding.ChipColorBinding;
@@ -21,6 +22,7 @@ import com.streamliners.gallery.databinding.ChipLabelBinding;
 import com.streamliners.gallery.databinding.DialogAddImageBinding;
 import com.streamliners.gallery.models.Item;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -33,6 +35,7 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
     private boolean isCustomLabel;
     private Bitmap image;
     private AlertDialog dialog;
+    private String imageUrl;
 
 
     /**
@@ -111,16 +114,28 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
                 }  //Square Img
                 else if (widthStr.isEmpty()){
                     int height = Integer.parseInt(heightStr);
-                    fetchRandomImage(height);
+                    try {
+                        fetchRandomImage(height);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }  //Square Img
                 else if(heightStr.isEmpty()){
                     int width = Integer.parseInt(widthStr);
-                    fetchRandomImage(width);
+                    try {
+                        fetchRandomImage(width);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }  //Rectangular Img
                 else {
                     int height = Integer.parseInt(heightStr);
                     int width = Integer.parseInt(heightStr);
-                    fetchRandomImage(width, height);
+                    try {
+                        fetchRandomImage(width, height);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -141,7 +156,7 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
      * Fetch Square Image
      * @param x
      */
-    private void fetchRandomImage(int x) {
+    private void fetchRandomImage(int x) throws IOException {
         new ItemHelper()
                 .fetchData(x , context, this);
     }
@@ -151,7 +166,7 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
      * @param width
      * @param height
      */
-    private void fetchRandomImage(int width, int height) {
+    private void fetchRandomImage(int width, int height) throws IOException {
         new ItemHelper()
                 .fetchData(width, height, context, this);
     }
@@ -160,15 +175,18 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
 
     /**
      * Show Data on Main Root to Add Image to Gallert
-     * @param image
+     * @param url
      * @param colors
      * @param labels
      */
-    private void showData(Bitmap image, Set<Integer> colors, List<String> labels) {
-        this.image = image;
+    private void showData(String url, Set<Integer> colors, List<String> labels) {
+        this.imageUrl = url;
         b.mainRoot.setVisibility(View.VISIBLE);
         b.customLabelInput.setVisibility(View.GONE);
-        b.imageView.setImageBitmap(image);
+        Glide.with(context)
+                .asBitmap()
+                .load(url)
+                .into(b.imageView);
         inflateColorChips(colors);
         inflateLabelChips(labels);
         handleCustomLabelInput();
@@ -247,17 +265,23 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
                 int color = ((Chip) b.colorChips.findViewById(colorChipId)).getChipBackgroundColor().getDefaultColor();
 
                 //Send Callback
-                Item item = new Item(image, color, label);
+                Item item = new Item(imageUrl, color, label);
                 listener.onImageAdded(item);
                 dialog.dismiss();
             }
         });
     }
 
+    /**
+     * S
+     * @param url
+     * @param colors
+     * @param labels
+     */
     @Override
-    public void onFetchedData(Bitmap image, Set<Integer> colors, List<String> labels) {
+    public void onFetchedData(String url, Set<Integer> colors, List<String> labels) {
         b.progressIndicatorRoot.setVisibility(View.GONE);
-        showData(image, colors, labels);
+        showData(url, colors, labels);
     }
 
     @Override
@@ -273,6 +297,5 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
     interface onCompleteListener{
         void onImageAdded(Item item);
         void onError(String error);
-
     }
 }
