@@ -5,8 +5,10 @@ Download apk by clicking [here](https://github.com/patelsneh18/Gallery-App/relea
 ## Features of Application
 
 - Fetch and add image from internet to gallery
-
 - Fetch colors and labels according to image and make an image cardview according to it.
+- Fetch image from device storage and add to gallery
+- Save data in shared preferences
+- Edit label and color of image card
 
 ## Previews  of Application
 
