@@ -9,6 +9,8 @@ Download apk by clicking [here](https://github.com/patelsneh18/Gallery-App/relea
 - Fetch image from device storage and add to gallery
 - Save data in shared preferences
 - Edit label and color of image card
+- Share image using intent
+- Performs async task to get redirected url
 
 ## Previews  of Application
 
