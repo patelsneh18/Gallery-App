@@ -11,6 +11,11 @@ Download apk by clicking [here](https://github.com/patelsneh18/Gallery-App/relea
 - Edit label and color of image card
 - Share image using intent
 - Performs async task to get redirected url
+- Create list by recycler view
+- Drag and Drop to reorder items
+- Swipe to remove item
+- Search Item
+- Buttom to sort images alphabetically according to labels
 
 ## Previews  of Application
 
