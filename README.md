@@ -1,6 +1,6 @@
 # Gallery-App
 
-Download apk by clicking [here](https://github.com/patelsneh18/Gallery-App/releases/download/1.0/app-debug.apk)
+Download apk by clicking [here](https://github.com/patelsneh18/Gallery-App/releases/download/1.1/app-debug.apk)
 
 ## Features of Application
 
