@@ -3,6 +3,10 @@ package com.streamliners.gallery;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.ContentValues;
 import android.content.Intent;
@@ -11,6 +15,8 @@ import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -56,11 +62,9 @@ public class GalleryActivity extends AppCompatActivity {
     ActivityGalleryBinding b;
     SharedPreferences preferences;
     List<Item> items = new ArrayList<>();
-    private boolean isDialogBoxShowed = false;
 
-    ItemCardBinding bindingToRemove;
-    private List<String> urls = new ArrayList<>();
     private String imageUrl;
+    ItemAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,65 +72,36 @@ public class GalleryActivity extends AppCompatActivity {
         b = ActivityGalleryBinding.inflate(getLayoutInflater());
         setContentView(b.getRoot());
 
-        if (!items.isEmpty())
-            b.noItemTV.setVisibility(View.GONE);
-
         preferences = getPreferences(MODE_PRIVATE);
         inflateDataFromSharedPreferences();
+
+        if (!items.isEmpty())
+            showItems(items);
+
     }
 
     //Functions for Context Menu
 
     /**
-     * Register Item for Context Menu
-     * @param binding
-     */
-
-    private void registerForContextMenu(ItemCardBinding binding) {
-        binding.imageView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
-            @Override
-            public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-                int index = b.list.indexOfChild(binding.getRoot());
-                String mageUrl = urls.get(index-1);
-                imageUrl = mageUrl;
-                MenuInflater inflater = getMenuInflater();
-                inflater.inflate(R.menu.edit_menu, menu);
-
-                bindingToRemove = binding;
-            }
-        });
-        binding.title.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
-            @Override
-            public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-                int index = b.list.indexOfChild(binding.getRoot());
-                imageUrl = urls.get(index-1);
-                MenuInflater inflater = getMenuInflater();
-                inflater.inflate(R.menu.edit_menu, menu);
-
-                bindingToRemove = binding;
-            }
-        });
-    }
-
-
-    /**
      * Handle Menu Item Selection
+     *
      * @param item
      * @return
      */
     @Override
     public boolean onContextItemSelected(MenuItem item) {
+        imageUrl = adapter.imageUrl;    //Image Url of Parent of Context Menu
+        int index = adapter.index;      //Index of item for context menu
+        ItemCardBinding binding = adapter.itemCardBinding;      //Binding of parent of context menu
         if (item.getItemId() == R.id.editMenuItem) {
-
             new EditImageDialog()
                     .show(this, imageUrl, new EditImageDialog.onCompleteListener() {
                         @Override
                         public void onEditCompleted(Item item) {
-                            int index = b.list.indexOfChild(bindingToRemove.getRoot()) - 1;
-                            b.list.removeView(bindingToRemove.getRoot());
+//                            int index = b.list.indexOfChild(bindingToRemove.getRoot()) - 1;
                             items.set(index, item);
                             //Inflate Layout
-                            inflateViewAt(item,index+1);
+                            adapter.notifyDataSetChanged();
                         }
 
                         @Override
@@ -138,75 +113,97 @@ public class GalleryActivity extends AppCompatActivity {
                         }
                     });
         }
-        if (item.getItemId() == R.id.removeMenuItem){
-            int index = b.list.indexOfChild(bindingToRemove.getRoot()) - 1;
-            items.remove(index);
-            b.list.removeView(bindingToRemove.getRoot());
-            if (items.size() == 0)
-                b.noItemTV.setVisibility(View.VISIBLE);
-
-        }
-        if (item.getItemId() == R.id.shareImage){
-            shareImage();
-        }
+        if (item.getItemId() == R.id.shareImage)
+            shareImage(binding);
         return true;
     }
 
-    private void shareImage() {
-        int index = b.list.indexOfChild(bindingToRemove.getRoot()) - 1;
-        Glide.with(this)
-                .asBitmap()
-                .load(urls.get(index))
-                .into(new CustomTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(@NonNull @NotNull Bitmap resource, @Nullable @org.jetbrains.annotations.Nullable Transition<? super Bitmap> transition) {
-                        Bitmap bitmap = resource;
-                        String bitmapPath = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "palette", "share palette");
-                        Uri bitmapUri = Uri.parse(bitmapPath);
+    private void shareImage(ItemCardBinding binding) {
+        Bitmap bitmap = getBitmapFromView(binding.getRoot());
+        String bitmapPath = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "palette", "share palette");
+        Uri bitmapUri = Uri.parse(bitmapPath);
+        //Intent to send image
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("image/png");
+        intent.putExtra(Intent.EXTRA_STREAM, bitmapUri);
+        startActivity(Intent.createChooser(intent, "Share"));
+    }
 
-                        Intent intent = new Intent(Intent.ACTION_SEND);
-                        intent.setType("image/png");
-                        intent.putExtra(Intent.EXTRA_STREAM, bitmapUri);
-                        startActivity(Intent.createChooser(intent, "Share"));
-
-                    }
-
-                    @Override
-                    public void onLoadCleared(@Nullable @org.jetbrains.annotations.Nullable Drawable placeholder) {
-
-                    }
-                });
+    /**
+     * Returns Bitmap from a View
+     *
+     * @param view
+     * @return
+     */
+    public static Bitmap getBitmapFromView(View view) {
+        //Define a bitmap with the same size as the view
+        Bitmap returnedBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
+        //Bind a canvas to it
+        Canvas canvas = new Canvas(returnedBitmap);
+        //Get the view's background
+        Drawable bgDrawable = view.getBackground();
+        if (bgDrawable != null)
+            //has background drawable, then draw it on the canvas
+            bgDrawable.draw(canvas);
+        else
+            //does not have background drawable, then draw white background on the canvas
+            canvas.drawColor(Color.WHITE);
+        // draw the view on the canvas
+        view.draw(canvas);
+        //return the bitmap
+        return returnedBitmap;
     }
 
     /**
      * Gives Add Image Option in menu
+     *
      * @param menu
      * @return
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.gallery, menu);
+
+        SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+
+        // SearchView on query text listener to add search function of adapter
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                adapter.filter(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.filter(newText);
+                return true;
+            }
+        });
         return true;
     }
 
 
     /**
      * Shows add image dialog on clicking icon in menu
+     *
      * @param item
      * @return
      */
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.addImage){
+        if (item.getItemId() == R.id.addImage) {
             showAddImageDialog();
             return true;
         }
-        if (item.getItemId() == R.id.addFromGallery){
+        if (item.getItemId() == R.id.addFromGallery) {
             addFromGallery();
+        }
+        if (item.getItemId() == R.id.sortLabels) {
+            adapter.sortAlphabetically();
         }
         return false;
     }
-
 
 
     /**
@@ -225,7 +222,7 @@ public class GalleryActivity extends AppCompatActivity {
      */
     private void showAddImageDialog() {
         if (this.getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-            isDialogBoxShowed = true;
+//            isDialogBoxShowed = true;
             // To set the screen orientation in portrait mode only
             this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
@@ -235,68 +232,55 @@ public class GalleryActivity extends AppCompatActivity {
                     @Override
                     public void onImageAdded(Item item) {
                         items.add(item);
-                        inflateViewforItem(item);
-                        b.noItemTV.setVisibility(View.GONE);
+                        showItems(items);
+
+//                        b.noItemTV.setVisibility(View.GONE);
                     }
 
                     @Override
                     public void onError(String error) {
-                         new MaterialAlertDialogBuilder(GalleryActivity.this)
-                                 .setTitle("Error")
-                                 .setMessage(error)
-                                 .show();
+                        new MaterialAlertDialogBuilder(GalleryActivity.this)
+                                .setTitle("Error")
+                                .setMessage(error)
+                                .show();
                     }
                 });
     }
 
+    // Callback for swipe action
+    ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+        @Override
+        public boolean onMove(@NonNull @NotNull RecyclerView recyclerView, @NonNull @NotNull RecyclerView.ViewHolder viewHolder, @NonNull @NotNull RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(@NonNull @NotNull RecyclerView.ViewHolder viewHolder, int direction) {
+            items.remove(viewHolder.getAdapterPosition());
+            adapter.notifyDataSetChanged();
+        }
+    };
 
     /**
-     * Adds Image Card to Linear Layout
-     * @param item
+     * Pass items list to ItemAdapter and add additional callbacks
+     *
+     * @param items
      */
-    private void inflateViewAt(Item item,int index) {
-
-        //Inflate Layout
-        ItemCardBinding binding = ItemCardBinding.inflate(getLayoutInflater());
-        //Bind Data
-        Glide.with(this)
-                .asBitmap()
-                .load(item.imageUrl)
-                .into(binding.imageView);
-
-        binding.title.setText(item.label);
-        binding.title.setBackgroundColor(item.color);
-
-        //Add it to the list
-
-        b.list.addView(binding.getRoot(),index);
-        registerForContextMenu(binding);
+    public void showItems(List<Item> items) {
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-    }
+        adapter = new ItemAdapter(this, items);
+        b.list.setLayoutManager(new LinearLayoutManager(this));
 
-    /**
-     * Adds Image Card to Linear Layout
-     * @param item
-     */
-    private void inflateViewforItem(Item item) {
-
-        //Inflate Layout
-        ItemCardBinding binding = ItemCardBinding.inflate(getLayoutInflater());
-        //Bind Data
-        Glide.with(this)
-                .asBitmap()
-                .load(item.imageUrl)
-                .into(binding.imageView);
-
-        binding.title.setText(item.label);
-        binding.title.setBackgroundColor(item.color);
-        urls.add(item.imageUrl);
-
-        //Add it to the list
-
-        b.list.addView(binding.getRoot());
-        registerForContextMenu(binding);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+        adapter.setItemAdapterHelper(itemTouchHelper);
+        itemTouchHelper.attachToRecyclerView(b.list);
+        ItemTouchHelper.Callback callback2 = new ItemAdapterHelper(adapter);
+        ItemTouchHelper itemTouchHelper1 = new ItemTouchHelper(callback2);
+        adapter.setItemAdapterHelper(itemTouchHelper1);
+        itemTouchHelper1.attachToRecyclerView(b.list);
+        b.list.setAdapter(adapter);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+
     }
 
 
@@ -313,10 +297,10 @@ public class GalleryActivity extends AppCompatActivity {
         myEdit.putInt(Constants.NUMOFIMG, numOfImg).apply();
 
         int counter = 0;
-        for (Item item : items){
+        for (Item item : items) {
             myEdit.putInt(Constants.COLOR + counter, item.color)
                     .putString(Constants.LABEL + counter, item.label)
-                    .putString(Constants.IMAGE + counter, urls.get(counter))
+                    .putString(Constants.IMAGE + counter, item.imageUrl)
                     .apply();
             counter++;
         }
@@ -326,23 +310,24 @@ public class GalleryActivity extends AppCompatActivity {
     /**
      * Inflate data from shared preferences
      */
-    private void inflateDataFromSharedPreferences(){
-        int itemCount = preferences.getInt(Constants.NUMOFIMG,0);
-        if (itemCount!=0) b.noItemTV.setVisibility(View.GONE);
+    private void inflateDataFromSharedPreferences() {
+        int itemCount = preferences.getInt(Constants.NUMOFIMG, 0);
+//        if (itemCount!=0) b.noItemTV.setVisibility(View.GONE);
         // Inflate all items from shared preferences
-        for (int i = 0; i < itemCount; i++){
+        for (int i = 0; i < itemCount; i++) {
 
-            Item item = new Item(preferences.getString(Constants.IMAGE + i,"")
-                    ,preferences.getInt(Constants.COLOR + i,0)
-                    ,preferences.getString(Constants.LABEL + i,""));
+            Item item = new Item(preferences.getString(Constants.IMAGE + i, "")
+                    , preferences.getInt(Constants.COLOR + i, 0)
+                    , preferences.getString(Constants.LABEL + i, ""));
 
             items.add(item);
-            inflateViewforItem(item);
         }
+        showItems(items);
     }
 
     /**
      * Fetch image from gallery
+     *
      * @param requestCode
      * @param resultCode
      * @param data
@@ -352,7 +337,7 @@ public class GalleryActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
             Uri selectedImage = data.getData();
-            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
             Cursor cursor = getContentResolver().query(selectedImage,
                     filePathColumn, null, null, null);
             cursor.moveToFirst();
@@ -365,8 +350,8 @@ public class GalleryActivity extends AppCompatActivity {
                 @Override
                 public void onAddCompleted(Item item) {
                     items.add(item);
-                    inflateViewforItem(item);
-                    b.noItemTV.setVisibility(View.GONE);
+                    showItems(items);
+//                    b.noItemTV.setVisibility(View.GONE);
                 }
 
                 @Override
@@ -379,6 +364,5 @@ public class GalleryActivity extends AppCompatActivity {
             });
         }
     }
-
 
 }

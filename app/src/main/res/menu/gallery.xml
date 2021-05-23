@@ -2,6 +2,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <item android:id="@+id/sortLabels"
+        android:icon="@drawable/ic_baseline_sort_by_alpha_24"
+        android:title="@string/sort"
+        app:showAsAction="always"/>
+
+
+    <item
+        android:id="@+id/search"
+        android:icon="@drawable/ic_baseline_image_search_24"
+        android:title="@string/search"
+        app:showAsAction="always"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
     <item android:id="@+id/addFromGallery"
         android:icon="@drawable/ic_baseline_insert_photo_24"
         android:title="@string/add_image"
@@ -11,5 +24,6 @@
         android:icon="@drawable/ic_baseline_add_photo_alternate_24"
         android:title="@string/add_image"
         app:showAsAction="always"/>
+
 
 </menu>

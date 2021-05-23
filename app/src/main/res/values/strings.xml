@@ -15,4 +15,6 @@
     <string name="edit_colors_and_label">Edit Colors and Label</string>
     <string name="remove">Remove</string>
     <string name="share_image">Share Image</string>
+    <string name="search">Search</string>
+    <string name="sort">Sort</string>
 </resources>
