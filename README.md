@@ -14,10 +14,12 @@ Download apk by clicking [here](https://github.com/patelsneh18/Gallery-App/relea
 
 ## Previews  of Application
 
+[Click Here to Check Out Video of Swipe, Drag, Search and Sort Option](https://drive.google.com/file/d/1I2MtKHBUeL1MFqnzYAEYTHE9aZj_ZYhp/view?usp=sharing)
+
 <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/WHInput1.jpg" alt="" width="231"> <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/ImgInput1.jpg" alt="" width="231"> <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/ImgLabelChecked1.jpg" alt="" width="231">
 <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/Gallery1.jpg" alt="" width="231"> <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/WHInput2.jpg" alt="" width="231"> <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/ImgInput2.jpg" alt="" width="231">
 <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/ImgLabelCheck2.jpg" alt="" width="231"> <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/Gallery2.jpg" alt="" width="231"> <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/LandscapeGallery.jpg" alt="" width="231">
 <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/ContextMenu.jpg" alt="" width="231"> <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/Gallery2.jpg" alt="" width="231"> <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/AfterEdit.jpg" alt="" width="231"/>
 <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/ShareImg.jpg" alt="" width="231"/>
 
-[Click Here to Check Out Video of Swipe, Drag, Search and Sort Option](https://drive.google.com/file/d/1I2MtKHBUeL1MFqnzYAEYTHE9aZj_ZYhp/view?usp=sharing)
+
