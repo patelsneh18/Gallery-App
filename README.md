@@ -20,4 +20,4 @@ Download apk by clicking [here](https://github.com/patelsneh18/Gallery-App/relea
 <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/ContextMenu.jpg" alt="" width="231"> <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/Gallery2.jpg" alt="" width="231"> <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/AfterEdit.jpg" alt="" width="231"/>
 <img title="" src="https://github.com/patelsneh18/storage/blob/main/GalleryApp/ShareImg.jpg" alt="" width="231"/>
 
-<iframe src="https://drive.google.com/file/d/1I2MtKHBUeL1MFqnzYAEYTHE9aZj_ZYhp/preview" width="640" height="480"></iframe>
+[Click Here to Check Out Video of Swipe, Drag, Search and Sort Option](https://drive.google.com/file/d/1I2MtKHBUeL1MFqnzYAEYTHE9aZj_ZYhp/view?usp=sharing)
