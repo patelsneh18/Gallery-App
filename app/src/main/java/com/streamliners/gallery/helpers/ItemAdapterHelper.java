@@ -1,11 +1,10 @@
-package com.streamliners.gallery;
-
-import android.graphics.Canvas;
-import android.view.View;
+package com.streamliners.gallery.helpers;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.streamliners.gallery.adapters.ItemAdapterInterface;
 
 import org.jetbrains.annotations.NotNull;
 

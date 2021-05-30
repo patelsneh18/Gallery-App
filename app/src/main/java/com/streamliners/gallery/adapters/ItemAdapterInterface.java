@@ -1,4 +1,4 @@
-package com.streamliners.gallery;
+package com.streamliners.gallery.adapters;
 
 //Interface for Item Adapter Helper
 public interface ItemAdapterInterface {

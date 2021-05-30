@@ -17,6 +17,8 @@ import androidx.appcompat.app.AlertDialog;
 import com.bumptech.glide.Glide;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.streamliners.gallery.GalleryActivity;
+import com.streamliners.gallery.helpers.ItemHelper;
 import com.streamliners.gallery.databinding.ChipColorBinding;
 import com.streamliners.gallery.databinding.ChipLabelBinding;
 import com.streamliners.gallery.databinding.DialogAddImageBinding;
@@ -36,6 +38,7 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
     private Bitmap image;
     private AlertDialog dialog;
     private String imageUrl;
+    int flag = 0;
 
 
     /**
@@ -43,7 +46,7 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
      * @param context
      * @param listener
      */
-    void show(Context context , onCompleteListener listener){
+    public void show(Context context , onCompleteListener listener){
         this.context = context;
         this.listener = listener;
         if (context instanceof GalleryActivity){
@@ -130,7 +133,7 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
                 }  //Rectangular Img
                 else {
                     int height = Integer.parseInt(heightStr);
-                    int width = Integer.parseInt(heightStr);
+                    int width = Integer.parseInt(widthStr);
                     try {
                         fetchRandomImage(width, height);
                     } catch (IOException e) {
@@ -171,6 +174,33 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
                 .fetchData(width, height, context, this);
     }
 
+    /**
+     * fetch data for image from gallery
+     * @param url
+     * @param context
+     * @param listener
+     */
+    public void fetchDataForGallery(String url,Context context,onCompleteListener listener){
+        this.listener = listener;
+        this.context = context;
+        flag=1;
+        if (context instanceof GalleryActivity) {
+            inflater = ((GalleryActivity) context).getLayoutInflater();
+            b = DialogAddImageBinding.inflate(inflater);
+        } else {
+            dialog.dismiss();
+            listener.onError("Cast Exception");
+            return;
+        }
+        dialog = new MaterialAlertDialogBuilder(context)
+                .setView(b.getRoot())
+                .show();
+        b.inputDimensionRoot.setVisibility(View.GONE);
+        b.progressIndicatorRoot.setVisibility(View.VISIBLE);
+        new ItemHelper()
+                .fetchData(url,context,this);
+
+    }
     //Step: 3 Show Data
 
     /**
@@ -183,10 +213,13 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
         this.imageUrl = url;
         b.mainRoot.setVisibility(View.VISIBLE);
         b.customLabelInput.setVisibility(View.GONE);
+
+
         Glide.with(context)
                 .asBitmap()
                 .load(url)
                 .into(b.imageView);
+
         inflateColorChips(colors);
         inflateLabelChips(labels);
         handleCustomLabelInput();
@@ -294,7 +327,7 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
     /**
      * callbacks for add image completion
      */
-    interface onCompleteListener{
+    public interface onCompleteListener{
         void onImageAdded(Item item);
         void onError(String error);
     }

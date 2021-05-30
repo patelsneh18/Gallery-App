@@ -8,63 +8,48 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.PersistableBundle;
 import android.provider.MediaStore;
-import android.util.Base64;
-import android.view.ContextMenu;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.streamliners.gallery.adapters.ItemAdapter;
 import com.streamliners.gallery.databinding.ActivityGalleryBinding;
 import com.streamliners.gallery.databinding.ItemCardBinding;
+import com.streamliners.gallery.helpers.ItemAdapterHelper;
 import com.streamliners.gallery.models.Item;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GalleryActivity extends AppCompatActivity {
-
+    
     private static final int RESULT_LOAD_IMAGE = 0;
+
     ActivityGalleryBinding b;
     SharedPreferences preferences;
     List<Item> items = new ArrayList<>();
 
     private String imageUrl;
     ItemAdapter adapter;
+    int mode = 0;       //If mode=1 Drag Enabled  Else Drag Disabled
+    ItemTouchHelper.Callback callback2;
+    ItemTouchHelper itemTouchHelper1;
+    Context context = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,12 +57,83 @@ public class GalleryActivity extends AppCompatActivity {
         b = ActivityGalleryBinding.inflate(getLayoutInflater());
         setContentView(b.getRoot());
 
+
         preferences = getPreferences(MODE_PRIVATE);
         inflateDataFromSharedPreferences();
 
         if (!items.isEmpty())
             showItems(items);
+        else b.noItems.setVisibility(View.VISIBLE);
+        enableDisableDrag();
+    }
 
+    /**
+     * On Click Listener Floating Button
+     */
+    void enableDisableDrag(){
+        b.dragListener.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mode == 0){
+                    mode = 1;
+                    adapter.mode = 1;
+                    List<ItemAdapter.ItemHolder> holders = adapter.holderList;
+                    b.dragListener.setBackgroundTintList(getResources().getColorStateList(R.color.clicked));
+                    b.dragListener.setRippleColor(getResources().getColorStateList(R.color.not_clicked));
+
+                    b.dragListener.setImageResource(R.drawable.ic_vertical);
+                    for (int i=0; i<holders.size(); i++){
+                        holders.get(i).listenerSetter();
+                    }
+
+                    itemTouchHelper1.attachToRecyclerView(b.list);
+                }
+                else {
+                    mode = 0;
+                    adapter.mode = 0;
+                    List<ItemAdapter.ItemHolder> holders = adapter.holderList;
+                    for (int i=0; i<holders.size(); i++){
+                        holders.get(i).listenerSetter();
+                    }
+                    b.dragListener.setBackgroundTintList(getResources().getColorStateList(R.color.not_clicked));
+                    b.dragListener.setRippleColor(getResources().getColorStateList(R.color.clicked));
+                    b.dragListener.setImageResource(R.drawable.ic_vertical_not);
+                    itemTouchHelper1.attachToRecyclerView(null);
+                }
+            }
+        });
+    }
+
+    /**
+     * Restore Drag Mode or Non-Drag Mode from Shared Preferences
+     */
+    void modeRestore(){
+        if (mode == 1){
+            mode = 1;
+            adapter.mode = 1;
+            List<ItemAdapter.ItemHolder> holders = adapter.holderList;
+            b.dragListener.setBackgroundTintList(getResources().getColorStateList(R.color.clicked));
+            b.dragListener.setRippleColor(getResources().getColorStateList(R.color.not_clicked));
+
+            b.dragListener.setImageResource(R.drawable.ic_vertical);
+            for (int i=0; i<holders.size(); i++){
+                holders.get(i).listenerSetter();
+            }
+
+            itemTouchHelper1.attachToRecyclerView(b.list);
+        }
+        else {
+            mode = 0;
+            adapter.mode = 0;
+            List<ItemAdapter.ItemHolder> holders = adapter.holderList;
+            for (int i=0; i<holders.size(); i++){
+                holders.get(i).listenerSetter();
+            }
+            b.dragListener.setBackgroundTintList(getResources().getColorStateList(R.color.not_clicked));
+            b.dragListener.setRippleColor(getResources().getColorStateList(R.color.clicked));
+            b.dragListener.setImageResource(R.drawable.ic_vertical_not);
+            itemTouchHelper1.attachToRecyclerView(null);
+        }
     }
 
     //Functions for Context Menu
@@ -180,6 +236,7 @@ public class GalleryActivity extends AppCompatActivity {
                 return true;
             }
         });
+
         return true;
     }
 
@@ -216,6 +273,37 @@ public class GalleryActivity extends AppCompatActivity {
         startActivityForResult(i, RESULT_LOAD_IMAGE);
     }
 
+    /**
+     * Fetch image from gallery
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
+            Uri selectedImage = data.getData();
+            String uri = selectedImage.toString();
+            //Show Add Image Dialog
+            new AddImageDialog()
+                    .fetchDataForGallery(uri, this, new AddImageDialog.onCompleteListener() {
+                        @Override
+                        public void onImageAdded(Item item) {
+                            items.add(item);
+                            showItems(items);
+
+                            b.noItems.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onError(String error) {
+
+                        }
+                    });
+        }
+    }
 
     /**
      * Shows Image Dialog Box
@@ -234,7 +322,7 @@ public class GalleryActivity extends AppCompatActivity {
                         items.add(item);
                         showItems(items);
 
-//                        b.noItemTV.setVisibility(View.GONE);
+                        b.noItems.setVisibility(View.GONE);
                     }
 
                     @Override
@@ -257,7 +345,11 @@ public class GalleryActivity extends AppCompatActivity {
         @Override
         public void onSwiped(@NonNull @NotNull RecyclerView.ViewHolder viewHolder, int direction) {
             items.remove(viewHolder.getAdapterPosition());
+            Toast.makeText(context, "Image Removed", Toast.LENGTH_SHORT).show();
+            if (items.isEmpty())
+                b.noItems.setVisibility(View.VISIBLE);
             adapter.notifyDataSetChanged();
+
         }
     };
 
@@ -267,18 +359,24 @@ public class GalleryActivity extends AppCompatActivity {
      * @param items
      */
     public void showItems(List<Item> items) {
+
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         adapter = new ItemAdapter(this, items);
         b.list.setLayoutManager(new LinearLayoutManager(this));
 
+        //Item Touch Helper for Swipe to Remove
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
         adapter.setItemAdapterHelper(itemTouchHelper);
         itemTouchHelper.attachToRecyclerView(b.list);
-        ItemTouchHelper.Callback callback2 = new ItemAdapterHelper(adapter);
-        ItemTouchHelper itemTouchHelper1 = new ItemTouchHelper(callback2);
+        callback2 = new ItemAdapterHelper(adapter);
+
+        //Item Touch Helper for Drag and Drop
+        itemTouchHelper1 = new ItemTouchHelper(callback2);
         adapter.setItemAdapterHelper(itemTouchHelper1);
-        itemTouchHelper1.attachToRecyclerView(b.list);
+
         b.list.setAdapter(adapter);
+        //Restore Mode
+        modeRestore();
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 
     }
@@ -304,6 +402,7 @@ public class GalleryActivity extends AppCompatActivity {
                     .apply();
             counter++;
         }
+        myEdit.putInt(Constants.MODE, mode);
         myEdit.commit();
     }
 
@@ -312,7 +411,7 @@ public class GalleryActivity extends AppCompatActivity {
      */
     private void inflateDataFromSharedPreferences() {
         int itemCount = preferences.getInt(Constants.NUMOFIMG, 0);
-//        if (itemCount!=0) b.noItemTV.setVisibility(View.GONE);
+        if (itemCount!=0) b.noItems.setVisibility(View.GONE);
         // Inflate all items from shared preferences
         for (int i = 0; i < itemCount; i++) {
 
@@ -322,47 +421,9 @@ public class GalleryActivity extends AppCompatActivity {
 
             items.add(item);
         }
+        mode = preferences.getInt(Constants.MODE, 0);
         showItems(items);
     }
 
-    /**
-     * Fetch image from gallery
-     *
-     * @param requestCode
-     * @param resultCode
-     * @param data
-     */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
-            Uri selectedImage = data.getData();
-            String[] filePathColumn = {MediaStore.Images.Media.DATA};
-            Cursor cursor = getContentResolver().query(selectedImage,
-                    filePathColumn, null, null, null);
-            cursor.moveToFirst();
-            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-            String picturePath = cursor.getString(columnIndex);
-            cursor.close();
-            String uri = selectedImage.toString();
-
-            new AddFromGalleryDialog().show(this, uri, new AddFromGalleryDialog.onCompleteListener() {
-                @Override
-                public void onAddCompleted(Item item) {
-                    items.add(item);
-                    showItems(items);
-//                    b.noItemTV.setVisibility(View.GONE);
-                }
-
-                @Override
-                public void onError(String error) {
-                    new MaterialAlertDialogBuilder(GalleryActivity.this)
-                            .setTitle("Error")
-                            .setMessage(error)
-                            .show();
-                }
-            });
-        }
-    }
 
 }

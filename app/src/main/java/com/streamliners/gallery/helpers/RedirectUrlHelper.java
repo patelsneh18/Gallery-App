@@ -1,4 +1,4 @@
-package com.streamliners.gallery;
+package com.streamliners.gallery.helpers;
 
 import android.os.AsyncTask;
 
@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class RedirectUrlHelper extends AsyncTask<String,Void,String> {
     private String redirectUrl;
@@ -68,7 +66,7 @@ public class RedirectUrlHelper extends AsyncTask<String,Void,String> {
 //        listener.onFetchedUrl(redirectUrl);
 //    }
 
-    interface OnFetchedUrlListener{
+    public interface OnFetchedUrlListener{
         void onFetchedUrl(String url);
     }
 

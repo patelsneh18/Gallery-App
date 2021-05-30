@@ -1,4 +1,4 @@
-package com.streamliners.gallery;
+package com.streamliners.gallery.helpers;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import androidx.palette.graphics.Palette;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -19,14 +18,11 @@ import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
 import com.google.mlkit.vision.label.ImageLabeling;
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
+import com.streamliners.gallery.helpers.RedirectUrlHelper;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -77,6 +73,12 @@ public class ItemHelper {
         );
     }
 
+    public void fetchData(String url,Context context,OnCompleteListener listener ){
+        this.context = context;
+        this.listener = listener;
+        redirectUrl = url;
+        fetchImage(url);
+    }
 
     void fetchUrl(String url) throws IOException {
 
@@ -178,7 +180,7 @@ public class ItemHelper {
     /**
      * Callback when image data is fetched
      */
-    interface OnCompleteListener{
+    public interface OnCompleteListener{
         void onFetchedData(String url, Set<Integer> colors, List<String> labels);
         void onError(String error);
     }

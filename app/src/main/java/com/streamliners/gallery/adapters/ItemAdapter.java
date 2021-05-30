@@ -1,32 +1,28 @@
-package com.streamliners.gallery;
+package com.streamliners.gallery.adapters;
 
 import android.content.Context;
-import android.os.Build;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.streamliners.gallery.R;
 import com.streamliners.gallery.databinding.ItemCardBinding;
 import com.streamliners.gallery.models.Item;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.zip.Inflater;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> implements ItemAdapterInterface {
 
@@ -37,13 +33,16 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
     public String imageUrl;
     public int index;
     public ItemCardBinding itemCardBinding;
+    public int mode;
+    public List<ItemHolder> holderList = new ArrayList<>();
 
     /**
      * Parameterised Constructor for ItemAdapter
+     *
      * @param context
      * @param items
      */
-    public ItemAdapter(Context context, List<Item> items){
+    public ItemAdapter(Context context, List<Item> items) {
         this.context = context;
         this.items = items;
         itemsToShow = items;
@@ -60,6 +59,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
     @Override
     public void onBindViewHolder(@NonNull ItemHolder holder, int position) {
         //Inflate Card
+        holderList.add(holder);
         holder.binding.title.setText(itemsToShow.get(position).label);
         holder.binding.title.setBackgroundColor(itemsToShow.get(position).color);
         Glide.with(context)
@@ -75,9 +75,10 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
 
     /**
      * Search Option
+     *
      * @param query
      */
-    public void filter(String query){
+    public void filter(String query) {
         //Filter According to Search Query
         if (query.trim().isEmpty()) {
             itemsToShow = items;
@@ -87,8 +88,8 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
         query = query.toLowerCase();
         // Temporary list of items filtered according to search
         List<Item> tempItems = new ArrayList<>();
-        for (Item item : items){
-            if (item.label.toLowerCase().contains(query)){
+        for (Item item : items) {
+            if (item.label.toLowerCase().contains(query)) {
                 tempItems.add(item);
             }
         }
@@ -99,12 +100,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
     /**
      * Sort Items Alphabetically
      */
-    public void sortAlphabetically(){
+    public void sortAlphabetically() {
         //Sort List of Items according to alphabetical order of labels
         Collections.sort(items, new Comparator<Item>() {
             @Override
             public int compare(Item o1, Item o2) {
-                return o1.label.compareTo(o2.label);
+                return o1.label.toLowerCase().compareTo(o2.label.toLowerCase());
             }
         });
         itemsToShow = items;
@@ -113,6 +114,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
 
     /**
      * Change position on item drag
+     *
      * @param from
      * @param to
      */
@@ -123,6 +125,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
         items.add(to, fromItem);
         itemsToShow = items;
         notifyItemMoved(from, to);
+
     }
 
     @Override
@@ -130,7 +133,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
         return;
     }
 
-    public void setItemAdapterHelper(ItemTouchHelper itemTouchHelper){
+    public void setItemAdapterHelper(ItemTouchHelper itemTouchHelper) {
 
         mItemTouchHelper = itemTouchHelper;
     }
@@ -139,15 +142,31 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
         public ItemCardBinding binding;
         GestureDetector gestureDetector;
 
-        public ItemHolder(@NonNull ItemCardBinding binding){
+        public ItemHolder(@NonNull ItemCardBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
             gestureDetector = new GestureDetector(binding.getRoot().getContext(), this);
-            //Set on touch listener for drag movement
-            binding.imageView.setOnTouchListener(this);
-            //Create Context Menu
-            binding.title.setOnCreateContextMenuListener(this);
+            listenerSetter();
         }
+
+        /**
+         * Change Listener when Mode is Changed
+         */
+        public void listenerSetter(){
+            if (mode == 0){
+                binding.imageView.setOnTouchListener(null);
+                binding.title.setOnCreateContextMenuListener(this);
+                binding.imageView.setOnCreateContextMenuListener(this);
+            }
+            else if (mode == 1){
+                binding.title.setOnCreateContextMenuListener(null);
+                binding.imageView.setOnCreateContextMenuListener(null);
+
+                binding.imageView.setOnTouchListener(this);
+
+            }
+        }
+
 
         @Override
         public boolean onDown(MotionEvent e) {
@@ -171,7 +190,9 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
 
         @Override
         public void onLongPress(MotionEvent e) {
-            mItemTouchHelper.startDrag(this);
+            if (mode == 1)
+                mItemTouchHelper.startDrag(this);
+
         }
 
         @Override
@@ -187,6 +208,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemHolder> im
 
         /**
          * Create Context Menu with Edit and share option
+         *
          * @param menu
          * @param v
          * @param menuInfo

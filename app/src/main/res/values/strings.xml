@@ -17,4 +17,5 @@
     <string name="share_image">Share Image</string>
     <string name="search">Search</string>
     <string name="sort">Sort</string>
+    <string name="drag_and_drop">Drag and Drop</string>
 </resources>

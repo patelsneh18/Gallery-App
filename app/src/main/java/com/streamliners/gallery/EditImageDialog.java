@@ -230,7 +230,7 @@ public class EditImageDialog {
     /**
      * callbacks for edit completion
      */
-    interface onCompleteListener{
+    public interface onCompleteListener{
         void onEditCompleted(Item item);
         void onError(String error);
 

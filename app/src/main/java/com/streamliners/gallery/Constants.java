@@ -6,4 +6,5 @@ public class Constants {
     public static final String LABEL = "label";
     public static final String IMAGE = "image";
     public static final String OPEN_GALLERY = "openGallery";
+    public static final String MODE = "mode";
 }
