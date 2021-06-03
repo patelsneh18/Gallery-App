@@ -35,7 +35,6 @@ public class AddImageDialog implements ItemHelper.OnCompleteListener {
     private LayoutInflater inflater;
 
     private boolean isCustomLabel;
-    private Bitmap image;
     private AlertDialog dialog;
     private String imageUrl;
     int flag = 0;
