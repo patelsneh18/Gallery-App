@@ -188,6 +188,7 @@ public class GalleryActivity extends AppCompatActivity {
     private void shareImage(ItemCardBinding binding) {
         Bitmap bitmap = getBitmapFromView(binding.getRoot());
         Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("image/png");
 //        String bitmapPath = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "palette", "share palette");
 //        Uri bitmapUri = Uri.parse(bitmapPath);
         ContentValues values = new ContentValues();
@@ -208,9 +209,6 @@ public class GalleryActivity extends AppCompatActivity {
 
         share.putExtra(Intent.EXTRA_STREAM, uri);
         //Intent to send image
-
-        share.setType("image/png");
-        share.putExtra(Intent.EXTRA_STREAM, uri);
         startActivity(Intent.createChooser(share, "Share"));
     }
 
